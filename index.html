@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>PhotoMap by Stewart McGown</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+
+    <link href="dist/sass/map.css" rel="stylesheet">
+    <link href="dist/loader.css" rel="stylesheet" media="none" onload="if(media!='all')media='all'">
+    <link href="dist/scroll.css" rel="stylesheet" media="none" onload="if(media!='all')media='all'">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" media="none" onload="if(media!='all')media='all'">
+
+
+</head>
+
+<body>
+    <div id="overlay">
+        <div class="header">
+            <h2>
+                <i class="fas fa-images"></i> PhotoMap <span class="beta">BETA</span></h2>
+            <h4>By Stewart McGown</h3>
+
+                <a href="#" class="close-icon">
+                    <i class="fas fa-chevron-circle-up"></i>
+                </a>
+        </div>
+
+        <div class="content">
+            
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="dist/jquery.js"></script>
+    <script src="dist/markerclusterer.js"></script>
+    <script src="dist/richmarker.js"></script>
+    <script src="dist/app.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA&callback=loadMap" async
+        defer></script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};init();"
+        onreadystatechange="if (this.readyState === 'complete') this.onload()">
+        </script>
+    <script defer src="https://use.fontawesome.com/releases/v5.2.0/js/all.js" integrity="sha384-4oV5EgaV02iISL2ban6c/RmotsABqE4yZxZLcYMAdG7FAPsyHYAPpywE9PJo+Khy" crossorigin="anonymous"></script>
+
+
+</body>
+
+</html>
