@@ -52,12 +52,12 @@ $BoxShadowHeavy: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
     position: fixed;
     z-index: 2;
     box-shadow: $BoxShadowMedium;
-    transition: all 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+    -webkit-transition: all .3s linear 0s;
+    transition: all .3s linear 0s;
   
     &.minimised {
         height: auto;
         width:20%;
-        transition: all 1s cubic-bezier(0.075, 0.82, 0.165, 1);
         .header {
           display: block;
         }

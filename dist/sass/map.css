@@ -31,11 +31,11 @@
   position: fixed;
   z-index: 2;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-  transition: all 1s cubic-bezier(0.075, 0.82, 0.165, 1); }
+  -webkit-transition: all .3s linear 0s;
+  transition: all .3s linear 0s; }
   #overlay.minimised {
     height: auto;
-    width: 20%;
-    transition: all 1s cubic-bezier(0.075, 0.82, 0.165, 1); }
+    width: 20%; }
     #overlay.minimised .header {
       display: block; }
     #overlay.minimised .content {
