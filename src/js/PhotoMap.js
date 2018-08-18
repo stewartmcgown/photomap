@@ -21,10 +21,10 @@ class PhotoMap {
     }
 
     get isFirstTime() {
-        if (localStorage.getItem("isFirstTime") == "true")
-            return true
-        else
+        if (localStorage.getItem("isFirstTime") == "false")
             return false
+        else
+            return true
     }
 
     set isFirstTime(a) {
