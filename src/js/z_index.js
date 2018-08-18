@@ -9,15 +9,19 @@ function loadDriveAPI() {
     })
 }
 
-async function signInHandler() {
+async function signInHandler(authenticated=false) {
+    
     photoMap.ui.hideSignIn();
     photoMap.ui.statusMessage = "Signing in..."
 
-    await gapi.auth.authorize({
-        'client_id': CLIENT_ID,
-        'immediate': false,
-        'scope': SCOPES
-    });
+
+    if (!authenticated) {
+        await gapi.auth.authorize({
+            'client_id': CLIENT_ID,
+            'immediate': false,
+            'scope': SCOPES
+        });
+    }
     
     photoMap.status.drive = true
 
@@ -34,7 +38,7 @@ function init() {
     loadDriveAPI()
     
     if (!photoMap.isFirstTime) {
-        
+        signInHandler(true)
     } else {
         photoMap.ui.showSignIn()
     }
