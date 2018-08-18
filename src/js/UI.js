@@ -46,11 +46,44 @@ class UI {
         })
     }
 
-    updateLoading() {
-        this.container.html("")
+    updateLoading(reset) {
+        if (reset)
+            this.container.html("")
 
-        this.loading = $(this.html.loading).appendTo(this.container)
+        if (!this.loading)
+            this.loading = $(this.html.loading).appendTo(this.container)
+        
         $(this.selectors.status).html(this.loadingMessage_)
+    }
+
+    emptyPlaces() {
+        this.photo_list.empty()
+    }
+
+    addPlace(place) {
+        var c = document.createElement('div')
+                c.className = "photo-list-item"
+                c.innerHTML = `
+                <div class="photo-container">
+                    <img src="${place.cover}">
+                </div>
+                <div class="photo-meta-container">
+                    <div class="photo-meta-tags">
+                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>-->
+                        <span class="photo-meta-tag-camera"><i class="fas fa-camera"></i> </span>
+                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> </span>
+                    </div>
+                    <div class="photo-meta-location-container">
+                        <span class="fa-layers fa-fw">
+                            <i class="fas fa-location-arrow"></i>
+                        </span> 
+                    
+                        <span class="photo-meta-location"> </span>
+                    </div>
+                    
+                </div>
+            `
+                this.photo_list[0].appendChild(c);
     }
 
     async load() {
@@ -67,18 +100,8 @@ class UI {
         this.photoMap.getPhotos()
     }
 
-    showSignIn() {
-        this.container.html(`
-        <div class="sign-in-container">
-        <div class="sign-in-inner">
-            <a class="button sign-in" href="#" onclick="gapi.load('client:auth2', loadDriveAPI)">
-                ${html.google} Sign in with Google
-            </a>
-
-            <a class="privacy-policy" href="privacy.html" target="blank">Privacy Policy</a>
-            </div>
-            </div>
-        `)
+    hideSignIn() {
+        this.container.find(".sign-in-container").remove()
     }
 
     hideStatus() {

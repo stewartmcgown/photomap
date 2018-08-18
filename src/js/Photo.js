@@ -83,7 +83,11 @@ class Photo {
             let base = this.url.substr(0, this.url.length - 3)
             return `${base}${width}`
         }
+    }
 
+    static resize(url, width) {
+        let base = url.substr(0, url.length - 3)
+        return `${base}${width}`
     }
 
 }

@@ -3,29 +3,27 @@ async function loadMap() {
     console.log("Loaded Map")
 }
 
-async function loadDriveAPI() {
+function loadDriveAPI() {
+    gapi.load('client:auth2', async function () {
+        
+    })
+}
+
+async function signInHandler() {
+    photoMap.ui.hideSignIn();
     photoMap.ui.statusMessage = "Signing in..."
 
-    gapi.load('client:auth2', async () => {
-        await gapi.client.init({
-            apiKey: API_KEY,
-            clientId: CLIENT_ID,
-            discoveryDocs: DISCOVERY_DOCS,
-            scope: SCOPES
-        })
+    await gapi.auth.authorize({
+        'client_id': CLIENT_ID,
+        'immediate': false,
+        'scope': SCOPES
+    });
+    
+    photoMap.status.drive = true
 
-        // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance().isSignedIn.listen();
+    photoMap.isFirstTime = false
 
-        // Handle the initial sign-in state.
-        await gapi.auth2.getAuthInstance().signIn();
-
-        photoMap.status.drive = true
-
-        photoMap.isFirstTime = false
-
-        console.log("Loaded API")
-    })
+    console.log("Loaded API")
 }
 
 function sleep(time) {
@@ -33,11 +31,15 @@ function sleep(time) {
 }
 
 function init() {
+    loadDriveAPI()
+    
     if (!photoMap.isFirstTime) {
-        loadDriveAPI()
+        
     } else {
         photoMap.ui.showSignIn()
     }
+
+    
 }
 
 window.photoMap = new PhotoMap()

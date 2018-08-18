@@ -1,42 +1,3 @@
-let html = {
-    spinner: `<svg class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
-                <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
-            </svg>`,
-    spinner_small: `<svg class="spinner spinner-small" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
-                <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
-            </svg>`,
-    mdswitch: `<input type="checkbox" id="id-name--1" name="set-name" class="switch-input">
-    <label for="id-name--1" class="switch-label">Switch <span class="toggle--on">On</span><span class="toggle--off">Off</span></label>`,
-    dots: `<div class="ellipses">
-    <span class="one">.</span><span class="two">.</span><span class="three">.</span>
-  </div>`,
-    placeholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==',
-    loading: `<div class="loading">
-    <svg class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
-        <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
-    </svg>
-</div>`,
-    google: `
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48"><defs><path id="a" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></defs><clipPath id="b"><use xlink:href="#a" overflow="visible"/></clipPath><path clip-path="url(#b)" fill="#FBBC05" d="M0 37V11l17 13z"/><path clip-path="url(#b)" fill="#EA4335" d="M0 11l17 13 7-6.1L48 14V0H0z"/><path clip-path="url(#b)" fill="#34A853" d="M0 37l30-23 7.9 1L48 0v48H0z"/><path clip-path="url(#b)" fill="#4285F4" d="M48 48L17 24l-4-3 35-10z"/></svg>`
-}
-
-const get = (p, o, r = null) =>
-    p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : r, o)
-
-// Other constants
-const MAX_GEOCODE_CONNECTIONS = 10
-
-// Client ID and API key from the Developer Console
-const API_KEY = 'AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA';
-const CLIENT_ID = '257316982603-0jmairn23vl079i1tt4tf0nk5kmkn32t.apps.googleusercontent.com';
-
-// Array of API discovery doc URLs for APIs used by the quickstart
-const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-const SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.photos.readonly';
-
 class Photo {
     constructor(photo) {
         this.id = photo.id
@@ -122,7 +83,11 @@ class Photo {
             let base = this.url.substr(0, this.url.length - 3)
             return `${base}${width}`
         }
+    }
 
+    static resize(url, width) {
+        let base = url.substr(0, url.length - 3)
+        return `${base}${width}`
     }
 
 }
@@ -149,10 +114,10 @@ class PhotoMap {
     }
 
     get isFirstTime() {
-        if (localStorage.getItem("isFirstTime") == "true")
-            return true
-        else
+        if (localStorage.getItem("isFirstTime") == "false")
             return false
+        else
+            return true
     }
 
     set isFirstTime(a) {
@@ -188,7 +153,7 @@ class PhotoMap {
         });
 
 
-        this.map.addListener('zoom_changed', () => { photoMap.resetClusters() })
+        this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); })
 
 
         this.geocoder = new google.maps.Geocoder()
@@ -202,7 +167,20 @@ class PhotoMap {
         document.head.appendChild(script);
     }
 
-    
+    updateSidebarPlaces() {
+        this.ui.emptyPlaces()
+        for (let cluster of this.clusterer.clusters_) {
+            if (!cluster.clusterIcon_.url_)
+                continue
+            
+            this.ui.addPlace({
+                lat: cluster.center_.lat(),
+                long: cluster.center_.lng(),
+                count: get(['clusterIcon_','sums_','text'],cluster),
+                cover: Photo.resize(cluster.clusterIcon_.url_, 512)
+            })
+        }
+    }
 
     clearMap() {
         for (let m of this.markers) {
@@ -323,7 +301,6 @@ class PhotoMap {
 
         this.clusterer = new MarkerClusterer(this.map, this.markers,
             {
-                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
                 maxZoom: 21,
                 minimumClusterSize: 2,
                 cssClass: 'cluster'
@@ -489,11 +466,44 @@ class UI {
         })
     }
 
-    updateLoading() {
-        this.container.html("")
+    updateLoading(reset) {
+        if (reset)
+            this.container.html("")
 
-        this.loading = $(this.html.loading).appendTo(this.container)
+        if (!this.loading)
+            this.loading = $(this.html.loading).appendTo(this.container)
+        
         $(this.selectors.status).html(this.loadingMessage_)
+    }
+
+    emptyPlaces() {
+        this.photo_list.empty()
+    }
+
+    addPlace(place) {
+        var c = document.createElement('div')
+                c.className = "photo-list-item"
+                c.innerHTML = `
+                <div class="photo-container">
+                    <img src="${place.cover}">
+                </div>
+                <div class="photo-meta-container">
+                    <div class="photo-meta-tags">
+                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>-->
+                        <span class="photo-meta-tag-camera"><i class="fas fa-camera"></i> </span>
+                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> </span>
+                    </div>
+                    <div class="photo-meta-location-container">
+                        <span class="fa-layers fa-fw">
+                            <i class="fas fa-location-arrow"></i>
+                        </span> 
+                    
+                        <span class="photo-meta-location"> </span>
+                    </div>
+                    
+                </div>
+            `
+                this.photo_list[0].appendChild(c);
     }
 
     async load() {
@@ -510,52 +520,79 @@ class UI {
         this.photoMap.getPhotos()
     }
 
-    showSignIn() {
-        this.container.html(`
-        <div class="sign-in-container">
-        <div class="sign-in-inner">
-            <a class="button sign-in" href="#" onclick="gapi.load('client:auth2', loadDriveAPI)">
-                ${html.google} Sign in with Google
-            </a>
-
-            <a class="privacy-policy" href="privacy.html" target="blank">Privacy Policy</a>
-            </div>
-            </div>
-        `)
+    hideSignIn() {
+        this.container.find(".sign-in-container").remove()
     }
 
     hideStatus() {
         this.loading.hide()
     }
 }
+let html = {
+    spinner: `<svg class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+            </svg>`,
+    spinner_small: `<svg class="spinner spinner-small" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+            </svg>`,
+    mdswitch: `<input type="checkbox" id="id-name--1" name="set-name" class="switch-input">
+    <label for="id-name--1" class="switch-label">Switch <span class="toggle--on">On</span><span class="toggle--off">Off</span></label>`,
+    dots: `<div class="ellipses">
+    <span class="one">.</span><span class="two">.</span><span class="three">.</span>
+  </div>`,
+    placeholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==',
+    loading: `<div class="loading">
+    <svg class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+        <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+    </svg>
+</div>`,
+    google: `
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48"><defs><path id="a" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></defs><clipPath id="b"><use xlink:href="#a" overflow="visible"/></clipPath><path clip-path="url(#b)" fill="#FBBC05" d="M0 37V11l17 13z"/><path clip-path="url(#b)" fill="#EA4335" d="M0 11l17 13 7-6.1L48 14V0H0z"/><path clip-path="url(#b)" fill="#34A853" d="M0 37l30-23 7.9 1L48 0v48H0z"/><path clip-path="url(#b)" fill="#4285F4" d="M48 48L17 24l-4-3 35-10z"/></svg>`
+}
+
+const get = (p, o, r = null) =>
+    p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : r, o)
+
+// Other constants
+const MAX_GEOCODE_CONNECTIONS = 10
+
+// Client ID and API key from the Developer Console
+const API_KEY = 'AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA';
+const CLIENT_ID = '257316982603-0jmairn23vl079i1tt4tf0nk5kmkn32t.apps.googleusercontent.com';
+
+// Array of API discovery doc URLs for APIs used by the quickstart
+const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+
+// Authorization scopes required by the API; multiple scopes can be
+// included, separated by spaces.
+const SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.photos.readonly';
+
 async function loadMap() {
     photoMap.loadMap()
     console.log("Loaded Map")
 }
 
-async function loadDriveAPI() {
+function loadDriveAPI() {
+    gapi.load('client:auth2', async function () {
+        
+    })
+}
+
+async function signInHandler() {
+    photoMap.ui.hideSignIn();
     photoMap.ui.statusMessage = "Signing in..."
 
-    gapi.load('client:auth2', async () => {
-        await gapi.client.init({
-            apiKey: API_KEY,
-            clientId: CLIENT_ID,
-            discoveryDocs: DISCOVERY_DOCS,
-            scope: SCOPES
-        })
+    await gapi.auth.authorize({
+        'client_id': CLIENT_ID,
+        'immediate': false,
+        'scope': SCOPES
+    });
+    
+    photoMap.status.drive = true
 
-        // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance().isSignedIn.listen();
+    photoMap.isFirstTime = false
 
-        // Handle the initial sign-in state.
-        await gapi.auth2.getAuthInstance().signIn();
-
-        photoMap.status.drive = true
-
-        photoMap.isFirstTime = false
-
-        console.log("Loaded API")
-    })
+    console.log("Loaded API")
 }
 
 function sleep(time) {
@@ -563,11 +600,15 @@ function sleep(time) {
 }
 
 function init() {
+    loadDriveAPI()
+    
     if (!photoMap.isFirstTime) {
-        loadDriveAPI()
+        
     } else {
         photoMap.ui.showSignIn()
     }
+
+    
 }
 
 window.photoMap = new PhotoMap()

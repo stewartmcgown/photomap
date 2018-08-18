@@ -60,7 +60,7 @@ class PhotoMap {
         });
 
 
-        this.map.addListener('zoom_changed', () => { photoMap.resetClusters() })
+        this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); })
 
 
         this.geocoder = new google.maps.Geocoder()
@@ -74,7 +74,20 @@ class PhotoMap {
         document.head.appendChild(script);
     }
 
-    
+    updateSidebarPlaces() {
+        this.ui.emptyPlaces()
+        for (let cluster of this.clusterer.clusters_) {
+            if (!cluster.clusterIcon_.url_)
+                continue
+            
+            this.ui.addPlace({
+                lat: cluster.center_.lat(),
+                long: cluster.center_.lng(),
+                count: get(['clusterIcon_','sums_','text'],cluster),
+                cover: Photo.resize(cluster.clusterIcon_.url_, 512)
+            })
+        }
+    }
 
     clearMap() {
         for (let m of this.markers) {
@@ -195,7 +208,6 @@ class PhotoMap {
 
         this.clusterer = new MarkerClusterer(this.map, this.markers,
             {
-                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
                 maxZoom: 21,
                 minimumClusterSize: 2,
                 cssClass: 'cluster'
