@@ -29,7 +29,7 @@ class PhotoMap {
 
     set isFirstTime(a) {
         localStorage.setItem("isFirstTime", a)
-    }   
+    }
 
     get loaded() {
         if (this.status.drive && this.status.maps)
@@ -60,7 +60,7 @@ class PhotoMap {
         });
 
 
-        this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); this.updateSidebarPlaces()})
+        this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); })
 
 
         this.geocoder = new google.maps.Geocoder()
@@ -76,18 +76,15 @@ class PhotoMap {
 
     async updateSidebarPlaces() {
         this.ui.emptyPlaces()
-        
-        while (this.clusterer.clusters_.length == 0)
-            await sleep(10)
 
         for (let cluster of this.clusterer.clusters_) {
             if (!cluster.clusterIcon_.url_)
                 continue
-            
+
             this.ui.addPlace({
                 lat: cluster.center_.lat(),
                 long: cluster.center_.lng(),
-                count: get(['clusterIcon_','sums_','text'],cluster),
+                count: get(['clusterIcon_', 'sums_', 'text'], cluster),
                 cover: Photo.resize(cluster.clusterIcon_.url_, 512)
             })
         }
@@ -132,10 +129,10 @@ class PhotoMap {
                     </div>
                     <div class="photo-meta-location-container">
                         <span class="fa-layers fa-fw">
-                            <i class="fas fa-location-arrow"></i> ${html.dots}
+                            <i class="fas fa-location-arrow"></i> 
                         </span> 
                     
-                        <span class="photo-meta-location"></span>
+                        <span class="photo-meta-location">${html.dots}</span>
                     </div>
                     
                 </div>
@@ -200,12 +197,15 @@ class PhotoMap {
         // Add to app marker array
         this.markers.push(marker)
 
-        // Update cluster
-        this.resetClusters()
+
 
 
     }
 
+    /**
+     * Called every time a view change is detected
+     * or a new set of photos are added
+     */
     resetClusters() {
         if (this.clusterer)
             this.clusterer.clearMarkers()
@@ -288,9 +288,6 @@ class PhotoMap {
     async getPhotos(nextPageToken) {
         const DEFAULT_Q = 'mimeType contains "image/" and trashed=false'
 
-
-
-
         let q
 
         if (this.query)
@@ -316,16 +313,27 @@ class PhotoMap {
                 console.log("Reached max photo count")
                 this.allPhotosLoaded = true
             } else if (response.result.files) {
-                for (let p of response.result.files)
-                    this.processPhoto(new Photo(p))
-                
-                if (response.result.nextPageToken && photoMap.RECURSE) {
-                    this.getPhotos(response.result.nextPageToken)
-                    this.ui.statusMessage = `Fetched ${this.photos.length} photos...`
-                } else if (!response.result.nextPageToken)
-                    this.allPhotosLoaded = true
+                this.addListOfPhotos(response.result)
             }
         })
 
+
+    }
+
+    addListOfPhotos(r) {
+        for (let p of r.files)
+            this.processPhoto(new Photo(p))
+
+        // Update cluster
+        this.resetClusters()
+
+        // Update siderbar
+        this.updateSidebarPlaces()
+
+        if (r.nextPageToken && this.RECURSE) {
+            this.getPhotos(r.nextPageToken)
+            this.ui.statusMessage = `Fetched ${this.photos.length} photos...`
+        } else if (!r.nextPageToken)
+            this.allPhotosLoaded = true
     }
 }
