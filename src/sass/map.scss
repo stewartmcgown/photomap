@@ -116,7 +116,7 @@ $BoxShadowHeavy: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
       }
     }
 
-    .button {
+    .button, .loading {
       width: 200px;
       box-shadow: $BoxShadowMedium;
       padding: 8px;
@@ -140,9 +140,12 @@ $BoxShadowHeavy: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
 
     .loading {
       margin: 0 auto;
+      margin-top: 16px;
+      margin-bottom: 16px;
       padding: 16px;
       text-align: center;
-
+      width:80%;
+      
       .spinner {
         vertical-align: middle;
         margin-right: 8px;

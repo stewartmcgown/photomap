@@ -192,7 +192,7 @@ class PhotoMap {
         });
 
 
-        this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); })
+        this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); this.updateSidebarPlaces()})
 
 
         this.geocoder = new google.maps.Geocoder()
@@ -206,8 +206,12 @@ class PhotoMap {
         document.head.appendChild(script);
     }
 
-    updateSidebarPlaces() {
+    async updateSidebarPlaces() {
         this.ui.emptyPlaces()
+        
+        while (this.clusterer.clusters_.length == 0)
+            await sleep(10)
+
         for (let cluster of this.clusterer.clusters_) {
             if (!cluster.clusterIcon_.url_)
                 continue
@@ -254,13 +258,13 @@ class PhotoMap {
                 </div>
                 <div class="photo-meta-container">
                     <div class="photo-meta-tags">
-                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>-->
+                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>
                         <span class="photo-meta-tag-camera"><i class="fas fa-camera"></i> ${photo.camera}</span>
-                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> ${photo.width} x ${photo.height}</span>
+                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> ${photo.width} x ${photo.height}</span>-->
                     </div>
                     <div class="photo-meta-location-container">
                         <span class="fa-layers fa-fw">
-                            <i class="fas fa-location-arrow"></i>
+                            <i class="fas fa-location-arrow"></i> ${html.dots}
                         </span> 
                     
                         <span class="photo-meta-location"></span>
@@ -559,6 +563,10 @@ class UI {
         this.photoMap.getPhotos()
     }
 
+    showSignIn() {
+        
+    }
+
     hideSignIn() {
         this.container.find(".sign-in-container").remove()
     }
@@ -572,47 +580,34 @@ async function loadMap() {
     console.log("Loaded Map")
 }
 
-function loadDriveAPI() {
-    gapi.load('client:auth2', async function () {
-        
-    })
-}
-
 async function signInHandler(authenticated=false) {
-    
     photoMap.ui.hideSignIn();
     photoMap.ui.statusMessage = "Signing in..."
 
-
-    if (!authenticated) {
-        await gapi.auth.authorize({
-            'client_id': CLIENT_ID,
-            'immediate': false,
-            'scope': SCOPES
-        });
-    }
+    await gapi.auth.authorize({
+        'client_id': CLIENT_ID,
+        'immediate': true,
+        'scope': SCOPES
+    });
     
     photoMap.status.drive = true
 
     photoMap.isFirstTime = false
 
-    console.log("Loaded API")
+    //console.log("Loaded API")
 }
 
 function sleep(time) {
     return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+
 function init() {
-    loadDriveAPI()
-    
     if (!photoMap.isFirstTime) {
         signInHandler(true)
     } else {
         photoMap.ui.showSignIn()
     }
-
-    
 }
 
 window.photoMap = new PhotoMap()

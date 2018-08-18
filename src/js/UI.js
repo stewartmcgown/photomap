@@ -100,6 +100,10 @@ class UI {
         this.photoMap.getPhotos()
     }
 
+    showSignIn() {
+        
+    }
+
     hideSignIn() {
         this.container.find(".sign-in-container").remove()
     }
