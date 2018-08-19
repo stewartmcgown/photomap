@@ -572,6 +572,7 @@ class UI {
     }
 
     showSignIn() {
+        this.container.html("")
         this.container.append(`
         <div class="sign-in-container">
         <div class="sign-in-inner">
@@ -602,17 +603,19 @@ async function signInHandler(authenticated=false) {
     photoMap.ui.hideSignIn();
     photoMap.ui.statusMessage = "Signing in..."
 
-    await gapi.auth.authorize({
+    gapi.auth2.authorize({
         'client_id': CLIENT_ID,
         'immediate': false,
         'scope': SCOPES
+    }, () => {
+        console.log(gapi)
+        photoMap.status.drive = true
+
+        photoMap.isFirstTime = false
+
+        console.log("Loaded API")
     });
-    
-    photoMap.status.drive = true
-
-    photoMap.isFirstTime = false
-
-    //console.log("Loaded API")
+       
 }
 
 function sleep(time) {

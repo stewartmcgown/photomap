@@ -101,6 +101,7 @@ class UI {
     }
 
     showSignIn() {
+        this.container.html("")
         this.container.append(`
         <div class="sign-in-container">
         <div class="sign-in-inner">
