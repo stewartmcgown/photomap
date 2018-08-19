@@ -9,7 +9,7 @@ async function signInHandler(authenticated=false) {
 
     await gapi.auth.authorize({
         'client_id': CLIENT_ID,
-        'immediate': true,
+        'immediate': false,
         'scope': SCOPES
     });
     
