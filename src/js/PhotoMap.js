@@ -75,8 +75,6 @@ class PhotoMap {
     }
 
     async updateSidebarPlaces() {
-        this.ui.emptyPlaces()
-
         for (let cluster of this.clusterer.clusters_) {
             if (!cluster.clusterIcon_.url_)
                 continue
@@ -197,9 +195,6 @@ class PhotoMap {
         // Add to app marker array
         this.markers.push(marker)
 
-
-
-
     }
 
     /**
@@ -214,7 +209,8 @@ class PhotoMap {
             {
                 maxZoom: 21,
                 minimumClusterSize: 2,
-                cssClass: 'cluster'
+                cssClass: 'cluster',
+                gridSize: 10
             });
     }
 

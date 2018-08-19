@@ -1,5 +1,5 @@
 /**
- * @name MarkerClusterer for Google Maps v3
+ * @name PhotoClusterer for Google Maps v3
  * @version version 1.0.2
  * @author Stewart McGown
  * @fileoverview
@@ -8,7 +8,7 @@
  * 
  * 
  * This library is derived from the original (no longer maintained)
- * version by Luke Mahe.
+ * version by Luke Mahe, called Marker Clusterer.
  *
  */
 

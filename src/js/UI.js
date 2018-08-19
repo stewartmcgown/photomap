@@ -69,16 +69,16 @@ class UI {
                 </div>
                 <div class="photo-meta-container">
                     <div class="photo-meta-tags">
-                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>-->
+                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>
                         <span class="photo-meta-tag-camera"><i class="fas fa-camera"></i> </span>
-                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> </span>
+                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> </span>-->
                     </div>
                     <div class="photo-meta-location-container">
                         <span class="fa-layers fa-fw">
                             <i class="fas fa-location-arrow"></i>
                         </span> 
                     
-                        <span class="photo-meta-location"> </span>
+                        <span class="photo-meta-location">${html.dots}</span>
                     </div>
                     
                 </div>

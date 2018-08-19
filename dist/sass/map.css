@@ -10,7 +10,8 @@
   #map .cluster {
     border-radius: 5%;
     border: 4px solid white;
-    color: white !important; }
+    color: white !important;
+    background-size: cover; }
   #map .cluster span._cluster_inner {
     background: #4285f4;
     position: absolute;
