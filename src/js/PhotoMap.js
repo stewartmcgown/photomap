@@ -117,7 +117,7 @@ class PhotoMap {
                 c.id = photo.id
                 c.innerHTML = `
                 <div class="photo-container">
-                    <img data-src="${photo.getSize(440)}">
+                    <img data-src="${photo.getSize({width: 440})}">
                 </div>
                 <div class="photo-meta-container">
                     <div class="photo-meta-tags">
@@ -166,11 +166,11 @@ class PhotoMap {
         let marker = new RichMarker({
             position: latLng,
             map: this.map,
-            content: `<div><img style="height: 64px; border-radius: 5%; border: 4px solid white;" src="${photo.getSize(256)}"/></div>`,
+            content: `<div><img style="height: 64px; border-radius: 5%; border: 4px solid white;" src="${photo.getSize({width: 256})}"/></div>`,
             draggable: false,
             flat: true,
             anchor: RichMarkerPosition.TOP,
-            cover: photo.getSize(128)
+            cover: photo.getSize({width: 256})
         })
 
         // Assign custom marker id
@@ -182,7 +182,7 @@ class PhotoMap {
                 photoMap.infoWindow.close()
 
             photoMap.infoWindow = new google.maps.InfoWindow({
-                content: `<a href="https://drive.google.com/file/d/${photo.id}/view" target="_blank"><img src="${photo.getSize()}"></a>`
+                content: `<a href="https://drive.google.com/file/d/${photo.id}/view" target="_blank"><img src="${photo.getSize({aspect: true})}"></a>`
             })
 
             photoMap.infoWindow.open(this.map, marker)
@@ -210,7 +210,6 @@ class PhotoMap {
                 maxZoom: 21,
                 minimumClusterSize: 2,
                 cssClass: 'cluster',
-                gridSize: 10
             });
     }
 

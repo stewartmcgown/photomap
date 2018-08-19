@@ -7,6 +7,10 @@ class Photo {
             this.meta = photo.imageMediaMetadata
         else
             this.meta = {}
+
+        this.addedTime = new Date()
+        
+        this.THUMB_LIFETIME = 9e5
     }
 
 
@@ -30,7 +34,7 @@ class Photo {
     }
 
     get latitude() {
-        return this.meta.location.latitude
+        return get(['location', 'latitude'],this.meta)
     }
 
     get longitude() {
@@ -65,24 +69,46 @@ class Photo {
 
     }
 
+    isExpired() {
+        return (new Date).getTime() - this.addedTime.getTime() > this.THUMB_LIFETIME
+    }
+
     /**
+     * Returns a link to the photo
      * 
-     * @param {int} width 
-     * @param {int} height 
+     * https://drive.google.com/thumbnail?authuser=0&sz=w546-h585-p-k-nu&id=1F05ZRe390FeklNnveX3I-cTeSPnN7TOyFg
+     * 
+     * @param {Object} options {
+     *      width: Number,
+     *      height: Number,
+     *      aspect: Boolean,
+     *      crop: Boolean
+     * }
      */
-    getSize(width, height) {
-        if (!width) {
-            width = this.width
-            height = this.height
-        } 
-        
-        if (height) {
-            let base = this.url.substr(0, this.url.length - 4)
-            return `${base}w${width}-h${height}-p-k-nu`
-        } else {
-            let base = this.url.substr(0, this.url.length - 3)
-            return `${base}${width}`
+    getSize(options) {
+        // Util: Appends parameter to list of parameters
+        let append = (s, v) => {
+            if (params.length > 0)
+                params+="-"
+
+            params += s
+
+            if (v)
+                params += v
         }
+
+        let params = ""
+
+        if (options.crop && !options.height)
+            options.height == options.width
+
+        options.width && append("w", Math.floor(options.width))
+        options.height && append("h", Math.floor(options.height))
+        options.crop && append("p-k-nu")
+        options.aspect && append("no")
+
+        return `https://drive.google.com/thumbnail?authuser=0&id=${this.id}&sz=${params}`
+        
     }
 
     static resize(url, width) {
