@@ -28,7 +28,7 @@ const MAX_GEOCODE_CONNECTIONS = 10
 
 // Client ID and API key from the Developer Console
 const API_KEY = 'AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA';
-const CLIENT_ID = '257316982603-0jmairn23vl079i1tt4tf0nk5kmkn32t.apps.googleusercontent.com';
+const CLIENT_ID = '257316982603-nr1g6o1icrqoiaui4rrhu31865ph11r3.apps.googleusercontent.com';
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
@@ -149,7 +149,9 @@ function MarkerClusterer(map, opt_markers, opt_options) {
 
   this.styles_ = options['styles'] || [];
 
-  this.cssClass_ = options['cssClass']
+  this.cssClass_ = options['cssClass'] || null;
+
+  this.inivisibleMarkers = options['invisibleMarkers'] || false;
 
   /**
    * @type {string}
@@ -854,6 +856,7 @@ function Cluster(markerClusterer) {
   this.gridSize_ = markerClusterer.getGridSize();
   this.minClusterSize_ = markerClusterer.getMinClusterSize();
   this.averageCenter_ = markerClusterer.isAverageCenter();
+  this.inivisibleMarkers = markerClusterer.inivisibleMarkers;
   this.center_ = null;
   this.markers_ = [];
   this.bounds_ = null;
@@ -936,7 +939,7 @@ Cluster.prototype.addMarker = function(marker) {
   this.markers_.push(marker);
 
   var len = this.markers_.length;
-  if (len < this.minClusterSize_ && marker.getMap() != this.map_) {
+  if (len < this.minClusterSize_ && marker.getMap() != this.map_ && !this.inivisibleMarkers) {
     // Min cluster size not reached so show the marker.
     marker.setMap(this.map_);
   }
@@ -1431,7 +1434,7 @@ class Photo {
         let params = ""
 
         if (options.crop && !options.height)
-            options.height == options.width
+            options.height = options.width
 
         options.width && append("w", Math.floor(options.width))
         options.height && append("h", Math.floor(options.height))
@@ -1448,7 +1451,100 @@ class Photo {
     }
 
 }
+/**
+ * A class for handling the areas. Adapted from the
+ * markerclusterer geometry section.
+ * 
+ * @see MarkerClusterer.js
+ */
+class PhotoGrouper {
+    /**
+     * Build a photogrouper using markers and a max group radius
+     * @param {google.maps.Marker[]} markers 
+     * @param {Number} distance 
+     */
+    constructor(map) {
+        this.map = map
+        this.groups = []
+    }
+    /**
+     * Calculates the distance between two latlng locations in km.
+     * @see http://www.movable-type.co.uk/scripts/latlong.html
+     *
+     * @param {google.maps.LatLng} p1 The first lat lng point.
+     * @param {google.maps.LatLng} p2 The second lat lng point.
+     * @return {number} The distance between the two points in km.
+    */
+    distance(p1, p2) {
+        if (!p1 || !p2) {
+            return 0;
+        }
 
+        var R = 6371; // Radius of the Earth in km
+        var dLat = (p2.lat() - p1.lat()) * Math.PI / 180;
+        var dLon = (p2.lng() - p1.lng()) * Math.PI / 180;
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(p1.lat() * Math.PI / 180) * Math.cos(p2.lat() * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c;
+        return d;
+    }
+
+    /**
+     * Groups marker into a fixed area. If no group
+     * is available, create one
+     * 
+     * @param {RichMarker} marker 
+     */
+    group(marker) {
+        let distance = 40000
+        let targetGroup = null
+        let position = marker.getPosition()
+
+        for (let group of this.groups) {
+            let center = group.getCenter();
+            if (center) {
+                var d = this.distanceBetweenPoints_(center, marker.getPosition());
+                if (d < distance) {
+                    distance = d;
+                    targetGroup = group
+                }
+            }
+        }
+
+        if (targetGroup) {
+            targetGroup.addMarker(marker);
+          } else {
+            var group = new Group(this);
+            group.addMarker(marker);
+            this.groups.push(cluster);
+          }
+    }
+
+    /**
+     * Creates groups
+     */
+
+    createGroups() {
+        for (let marker of this.markers) {
+            this.group(marker)
+        }
+    }
+}
+
+/**
+ * A group to hold markers and resolve them to addresses
+ */
+class Group {
+    constructor() {
+        this.markers = []
+    }   
+
+    addMarker(marker) {
+        this.markers.push(markers)
+    }
+}
 class PhotoMap {
     constructor() {
         this.state = "unloaded"
@@ -1463,7 +1559,7 @@ class PhotoMap {
         this.infoWindows = []
 
         this.PAGE_SIZE = 1000
-        this.MAX_PHOTOS = 4000
+        this.MAX_PHOTOS = 0
         this.RECURSE = true
         this.GEOCODE = false
         this.SIDEBAR = false
@@ -1482,6 +1578,10 @@ class PhotoMap {
         localStorage.setItem("isFirstTime", a)
     }
 
+    get clusterClass() {
+        return 'cluster'
+    }
+
     get loaded() {
         if (this.status.drive && this.status.maps)
             return true
@@ -1490,7 +1590,7 @@ class PhotoMap {
     }
 
     get maxPhotosReached() {
-        return (this.photos.length >= this.MAX_PHOTOS)
+        return (this.photos.length >= this.MAX_PHOTOS && this.MAX_PHOTOS != 0)
     }
 
     set allPhotosLoaded(a) {
@@ -1525,19 +1625,6 @@ class PhotoMap {
         document.head.appendChild(script);
     }
 
-    async updateSidebarPlaces() {
-        for (let cluster of this.clusterer.clusters_) {
-            if (!cluster.clusterIcon_.url_)
-                continue
-
-            this.ui.addPlace({
-                lat: cluster.center_.lat(),
-                long: cluster.center_.lng(),
-                count: get(['clusterIcon_', 'sums_', 'text'], cluster),
-                cover: Photo.resize(cluster.clusterIcon_.url_, 512)
-            })
-        }
-    }
 
     clearMap() {
         for (let m of this.markers) {
@@ -1621,7 +1708,8 @@ class PhotoMap {
             draggable: false,
             flat: true,
             anchor: RichMarkerPosition.TOP,
-            cover: photo.getSize({width: 256})
+            cover: photo.getSize({width: 256}),
+            id: photo.id
         })
 
         // Assign custom marker id
@@ -1655,12 +1743,13 @@ class PhotoMap {
     resetClusters() {
         if (this.clusterer)
             this.clusterer.clearMarkers()
-
+        
         this.clusterer = new MarkerClusterer(this.map, this.markers,
             {
                 maxZoom: 21,
                 minimumClusterSize: 2,
-                cssClass: 'cluster',
+                cssClass: this.clusterClass,
+                gridSize: 40
             });
     }
 
@@ -1755,7 +1844,7 @@ class PhotoMap {
         })).then((response) => {
             if (response.result.error) {
                 this.getPhotos(nextPageToken)
-            } else if (this.photos.length >= this.MAX_PHOTOS) {
+            } else if (this.maxPhotosReached) {
                 console.log("Reached max photo count")
                 this.allPhotosLoaded = true
             } else if (response.result.files) {
@@ -1774,13 +1863,50 @@ class PhotoMap {
         this.resetClusters()
 
         // Update siderbar
-        this.updateSidebarPlaces()
+        //this.updateSidebarPlaces()
 
         if (r.nextPageToken && this.RECURSE) {
             this.getPhotos(r.nextPageToken)
             this.ui.statusMessage = `Fetched ${this.photos.length} photos...`
         } else if (!r.nextPageToken)
             this.allPhotosLoaded = true
+    }
+
+    
+    async updateSidebarPlaces() {
+        let clusters = await this.getFixedSizeGrid(1);
+        this.ui.emptyPlaces()
+        for (let cluster of clusters) {
+            if (!cluster.clusterIcon_.url_)
+                continue
+
+            this.ui.addPlace({
+                lat: cluster.center_.lat(),
+                long: cluster.center_.lng(),
+                count: get(['clusterIcon_', 'sums_', 'text'], cluster),
+                cover: Photo.resize(cluster.clusterIcon_.url_, 512)
+            })
+        }
+    }
+
+    async getFixedSizeGrid(size=1) {
+        let a = new MarkerClusterer(this.map, this.markers,
+            {
+                maxZoom: 21,
+                minimumClusterSize: 2,
+                cssClass: 'cluster-hidden',
+                invisibleMarkers: true,
+                gridSize: 1
+            })
+
+        while (a.clusters_.length == 0)
+            await sleep(100)       
+        
+        let d = [...a.clusters_]
+
+        a.clearMarkers()
+
+        return d
     }
 }
 class UI {

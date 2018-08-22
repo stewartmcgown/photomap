@@ -1,4 +1,4 @@
-var gulp = require('gulp'), concat = require('gulp-concat'), sass = require('gulp-sass');
+var gulp = require('gulp'), concat = require('gulp-concat'), sass = require('gulp-sass'), babel = require('gulp-babel');;
 
 gulp.task('default', function() {
   // place code for your default task here
@@ -16,6 +16,7 @@ gulp.task('sass', function () {
     .pipe(sass().on('error', sass.logError))
     .pipe(gulp.dest('./dist'));
 });
+
  
 gulp.task('sass:watch', function () {
     gulp.watch('src/**/*.scss', ['sass']);

@@ -100,7 +100,7 @@ class Photo {
         let params = ""
 
         if (options.crop && !options.height)
-            options.height == options.width
+            options.height = options.width
 
         options.width && append("w", Math.floor(options.width))
         options.height && append("h", Math.floor(options.height))

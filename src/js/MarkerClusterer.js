@@ -110,7 +110,9 @@ function MarkerClusterer(map, opt_markers, opt_options) {
 
   this.styles_ = options['styles'] || [];
 
-  this.cssClass_ = options['cssClass']
+  this.cssClass_ = options['cssClass'] || null;
+
+  this.inivisibleMarkers = options['invisibleMarkers'] || false;
 
   /**
    * @type {string}
@@ -815,6 +817,7 @@ function Cluster(markerClusterer) {
   this.gridSize_ = markerClusterer.getGridSize();
   this.minClusterSize_ = markerClusterer.getMinClusterSize();
   this.averageCenter_ = markerClusterer.isAverageCenter();
+  this.inivisibleMarkers = markerClusterer.inivisibleMarkers;
   this.center_ = null;
   this.markers_ = [];
   this.bounds_ = null;
@@ -897,7 +900,7 @@ Cluster.prototype.addMarker = function(marker) {
   this.markers_.push(marker);
 
   var len = this.markers_.length;
-  if (len < this.minClusterSize_ && marker.getMap() != this.map_) {
+  if (len < this.minClusterSize_ && marker.getMap() != this.map_ && !this.inivisibleMarkers) {
     // Min cluster size not reached so show the marker.
     marker.setMap(this.map_);
   }

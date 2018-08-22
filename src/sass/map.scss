@@ -25,6 +25,10 @@ $BoxShadowHeavy: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
       background-size:cover;
     }
 
+    .cluster-hidden {
+      display: none;
+    }
+
     .cluster span._cluster_inner {
       background: $UIPrimaryColor;
       position: absolute;
@@ -174,7 +178,6 @@ $BoxShadowHeavy: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
       &:hover {
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
       }
-      .photo-container {}
       .photo-meta-container {
         padding: 16px;
         .photo-meta-tags {
@@ -270,3 +273,73 @@ $BoxShadowHeavy: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
       display: none;
     }
   }
+
+$placeholder-padding: 8px;
+$placeholder-font-size: 16px;
+$placeholder-font-size-small: 14px;
+$placeholder-transition: 200ms ease-in-out;
+$input-font-size: 16px;
+$input-top: 15px;
+$input-height: 30px;
+$input-border-color: grey;
+$wrapper-padding: 16px;
+
+.search {
+  padding: $wrapper-padding;
+  width: 100%;
+
+  label {
+    position:relative;
+    display:block;
+    width:100%;
+    min-height:$input-height + $input-top;
+  }
+
+  .placeholder {
+    position:absolute;
+    display:block;
+    top:($input-height / 2) + $placeholder-padding;
+    z-index:2;
+    font-size:$placeholder-font-size;
+    transition:all $placeholder-transition;
+    width:100%;
+    cursor:text;
+  }
+
+  input, textarea {
+    position:absolute;
+    top:$input-top;
+    z-index:1;
+    width:100%;
+    font-size:$input-font-size;
+    border:0;
+    border-bottom:1px solid $input-border-color;
+    transition: border-color $placeholder-transition;
+    outline:none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  textarea {
+    min-height:$input-height;
+    padding: $placeholder-padding 0;
+  }
+  
+  input {
+    height:$input-height; 
+  }
+
+  input:focus,
+  input:valid,
+  textarea:focus,
+  textarea:valid {
+    & + .placeholder {
+      top:0;
+      cursor:inherit;
+      font-size:$placeholder-font-size-small;
+      color:$UIPrimaryColor;
+    }
+
+    border-bottom:2px solid $UIPrimaryColor;
+  }
+}

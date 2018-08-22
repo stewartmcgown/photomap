@@ -12,6 +12,8 @@
     border: 4px solid white;
     color: white !important;
     background-size: cover; }
+  #map .cluster-hidden {
+    display: none; }
   #map .cluster span._cluster_inner {
     background: #4285f4;
     position: absolute;
@@ -198,3 +200,51 @@ html, body {
 
 .switch-input:checked + .switch-label .toggle--off {
   display: none; }
+
+.search {
+  padding: 16px;
+  width: 100%; }
+  .search label {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 45px; }
+  .search .placeholder {
+    position: absolute;
+    display: block;
+    top: 23px;
+    z-index: 2;
+    font-size: 16px;
+    transition: all 200ms ease-in-out;
+    width: 100%;
+    cursor: text; }
+  .search input, .search textarea {
+    position: absolute;
+    top: 15px;
+    z-index: 1;
+    width: 100%;
+    font-size: 16px;
+    border: 0;
+    border-bottom: 1px solid grey;
+    transition: border-color 200ms ease-in-out;
+    outline: none;
+    padding: 0;
+    margin: 0; }
+  .search textarea {
+    min-height: 30px;
+    padding: 8px 0; }
+  .search input {
+    height: 30px; }
+  .search input:focus,
+  .search input:valid,
+  .search textarea:focus,
+  .search textarea:valid {
+    border-bottom: 2px solid #4285f4; }
+    .search input:focus + .placeholder,
+    .search input:valid + .placeholder,
+    .search textarea:focus + .placeholder,
+    .search textarea:valid + .placeholder {
+      top: 0;
+      cursor: inherit;
+      font-size: 14px;
+      color: #4285f4; }

@@ -12,7 +12,7 @@ class PhotoMap {
         this.infoWindows = []
 
         this.PAGE_SIZE = 1000
-        this.MAX_PHOTOS = 4000
+        this.MAX_PHOTOS = 0
         this.RECURSE = true
         this.GEOCODE = false
         this.SIDEBAR = false
@@ -31,6 +31,10 @@ class PhotoMap {
         localStorage.setItem("isFirstTime", a)
     }
 
+    get clusterClass() {
+        return 'cluster'
+    }
+
     get loaded() {
         if (this.status.drive && this.status.maps)
             return true
@@ -39,7 +43,7 @@ class PhotoMap {
     }
 
     get maxPhotosReached() {
-        return (this.photos.length >= this.MAX_PHOTOS)
+        return (this.photos.length >= this.MAX_PHOTOS && this.MAX_PHOTOS != 0)
     }
 
     set allPhotosLoaded(a) {
@@ -74,19 +78,6 @@ class PhotoMap {
         document.head.appendChild(script);
     }
 
-    async updateSidebarPlaces() {
-        for (let cluster of this.clusterer.clusters_) {
-            if (!cluster.clusterIcon_.url_)
-                continue
-
-            this.ui.addPlace({
-                lat: cluster.center_.lat(),
-                long: cluster.center_.lng(),
-                count: get(['clusterIcon_', 'sums_', 'text'], cluster),
-                cover: Photo.resize(cluster.clusterIcon_.url_, 512)
-            })
-        }
-    }
 
     clearMap() {
         for (let m of this.markers) {
@@ -170,7 +161,8 @@ class PhotoMap {
             draggable: false,
             flat: true,
             anchor: RichMarkerPosition.TOP,
-            cover: photo.getSize({width: 256})
+            cover: photo.getSize({width: 256}),
+            id: photo.id
         })
 
         // Assign custom marker id
@@ -204,12 +196,13 @@ class PhotoMap {
     resetClusters() {
         if (this.clusterer)
             this.clusterer.clearMarkers()
-
+        
         this.clusterer = new MarkerClusterer(this.map, this.markers,
             {
                 maxZoom: 21,
                 minimumClusterSize: 2,
-                cssClass: 'cluster',
+                cssClass: this.clusterClass,
+                gridSize: 40
             });
     }
 
@@ -304,7 +297,7 @@ class PhotoMap {
         })).then((response) => {
             if (response.result.error) {
                 this.getPhotos(nextPageToken)
-            } else if (this.photos.length >= this.MAX_PHOTOS) {
+            } else if (this.maxPhotosReached) {
                 console.log("Reached max photo count")
                 this.allPhotosLoaded = true
             } else if (response.result.files) {
@@ -323,12 +316,49 @@ class PhotoMap {
         this.resetClusters()
 
         // Update siderbar
-        this.updateSidebarPlaces()
+        //this.updateSidebarPlaces()
 
         if (r.nextPageToken && this.RECURSE) {
             this.getPhotos(r.nextPageToken)
             this.ui.statusMessage = `Fetched ${this.photos.length} photos...`
         } else if (!r.nextPageToken)
             this.allPhotosLoaded = true
+    }
+
+    
+    async updateSidebarPlaces() {
+        let clusters = await this.getFixedSizeGrid(1);
+        this.ui.emptyPlaces()
+        for (let cluster of clusters) {
+            if (!cluster.clusterIcon_.url_)
+                continue
+
+            this.ui.addPlace({
+                lat: cluster.center_.lat(),
+                long: cluster.center_.lng(),
+                count: get(['clusterIcon_', 'sums_', 'text'], cluster),
+                cover: Photo.resize(cluster.clusterIcon_.url_, 512)
+            })
+        }
+    }
+
+    async getFixedSizeGrid(size=1) {
+        let a = new MarkerClusterer(this.map, this.markers,
+            {
+                maxZoom: 21,
+                minimumClusterSize: 2,
+                cssClass: 'cluster-hidden',
+                invisibleMarkers: true,
+                gridSize: 1
+            })
+
+        while (a.clusters_.length == 0)
+            await sleep(100)       
+        
+        let d = [...a.clusters_]
+
+        a.clearMarkers()
+
+        return d
     }
 }

@@ -1,7 +1,7 @@
 # PhotoMap
 ## A Minimal Photo viewer for Google Photos
 
-![](https://i.imgur.com/qnRMMUc.png "Map with photos showing")
+![](https://twistedcore.co.uk/img/portfolio/photomap.jpg "Map with photos showing")
 
 Using the Drive API alone, all of a users Google Photos can be retrieved, with their metadata being sent to the application. The Maps API is then used to display this information on a map, with markers in their place.
 

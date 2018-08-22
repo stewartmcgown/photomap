@@ -28,7 +28,7 @@ const MAX_GEOCODE_CONNECTIONS = 10
 
 // Client ID and API key from the Developer Console
 const API_KEY = 'AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA';
-const CLIENT_ID = '257316982603-0jmairn23vl079i1tt4tf0nk5kmkn32t.apps.googleusercontent.com';
+const CLIENT_ID = '257316982603-nr1g6o1icrqoiaui4rrhu31865ph11r3.apps.googleusercontent.com';
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
