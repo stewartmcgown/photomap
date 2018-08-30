@@ -38,6 +38,10 @@
   animation: dash 1.4s ease-in-out infinite, colors 5.6s ease-in-out infinite;
 }
 
+.white {
+  stroke: #fff;
+}
+
 @-webkit-keyframes colors {
   0% {
     stroke: #4285F4;

@@ -39,10 +39,8 @@
   #overlay.minimised {
     height: auto;
     width: 20%; }
-    #overlay.minimised .header {
-      display: block; }
     #overlay.minimised .content {
-      display: none; }
+      height: 0px; }
   #overlay .header {
     background: #4285f4;
     position: relative;
@@ -117,13 +115,20 @@
   to {
     opacity: 1; } }
   #overlay .photo-list-item {
+    height: 15vh;
     width: 100%;
+    display: flex;
     margin-bottom: 16px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
     animation: fadein 2s;
     cursor: pointer; }
     #overlay .photo-list-item:hover {
       box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22); }
+    #overlay .photo-list-item .photo-container {
+      width: 33%; }
+      #overlay .photo-list-item .photo-container .photo-img {
+        background-size: cover;
+        height: 100%; }
     #overlay .photo-list-item .photo-meta-container {
       padding: 16px; }
       #overlay .photo-list-item .photo-meta-container .photo-meta-tags {

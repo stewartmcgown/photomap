@@ -44,6 +44,33 @@ class UI {
             $(that.selectors.overlay).toggleClass("minimised")
             $(`.close-icon > svg`).toggleClass("fa-rotate-180")
         })
+
+        this.bindSearch()
+    }
+
+    /**
+    * Binds the search bar to the map
+    */
+    bindSearch() {
+        // Get the input box
+        var textInput = document.getElementById('search');
+
+        // Init a timeout variable to be used below
+        var timeout = null;
+
+        // Listen for keystroke events
+        textInput.onkeyup = (e) => {
+
+            // Clear the timeout if it has already been set.
+            // This will prevent the previous task from executing
+            // if it has been less than <MILLISECONDS>
+            clearTimeout(timeout);
+
+            // Make a new timeout set to go off in 800ms
+            timeout = setTimeout(() => {
+                this.photoMap.search(textInput.value)
+            }, 500);
+        };
     }
 
     updateLoading(reset) {
@@ -52,6 +79,7 @@ class UI {
 
         if (!this.loading)
             this.loading = $(this.html.loading).appendTo(this.container)
+        this.loading.show()
 
         $(this.selectors.status).html(this.loadingMessage_)
     }
@@ -60,12 +88,13 @@ class UI {
         this.photo_list.empty()
     }
 
-    addPlace(place) {
+    addPhoto(photo) {
         var c = document.createElement('div')
         c.className = "photo-list-item"
+        c.id = photo..trim()
         c.innerHTML = `
                 <div class="photo-container">
-                    <img src="${place.cover}">
+                    <div class="photo-img" style="background-image:url('${photo.cover}')"></div>
                 </div>
                 <div class="photo-meta-container">
                     <div class="photo-meta-tags">
@@ -83,6 +112,11 @@ class UI {
                     
                 </div>
             `
+
+        c.onclick = () => { this.photoMap.map.setCenter(new google.maps.LatLng(photo.latitude, photo.longitude)); this.photoMap.map.setZoom(17) }
+
+        this.photoMap.geocoder.getLocation(photo, )
+
         this.photo_list[0].appendChild(c);
     }
 

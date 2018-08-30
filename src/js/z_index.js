@@ -12,7 +12,6 @@ async function signInHandler(authenticated=false) {
         'immediate': false,
         'scope': SCOPES
     }, () => {
-        console.log(gapi)
         photoMap.status.drive = true
 
         photoMap.isFirstTime = false

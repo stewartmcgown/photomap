@@ -23,9 +23,6 @@ let html = {
 const get = (p, o, r = null) =>
     p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : r, o)
 
-// Other constants
-const MAX_GEOCODE_CONNECTIONS = 10
-
 // Client ID and API key from the Developer Console
 const API_KEY = 'AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA';
 const CLIENT_ID = '257316982603-nr1g6o1icrqoiaui4rrhu31865ph11r3.apps.googleusercontent.com';

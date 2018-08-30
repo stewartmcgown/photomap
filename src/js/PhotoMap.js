@@ -7,17 +7,18 @@ class PhotoMap {
             photos: false
         }
         this.photos = []
-        this.geocodeCount = 0
         this.markers = []
         this.infoWindows = []
 
         this.PAGE_SIZE = 1000
-        this.MAX_PHOTOS = 0
+        this.MAX_PHOTOS = 10000
         this.RECURSE = true
-        this.GEOCODE = false
-        this.SIDEBAR = false
+        this.GEOCODE = true
+        this.GEOCODE_ALL = false
+        this.SIDEBAR = true
 
         this.ui = new UI(this)
+        this.geocoder = new Geocoder(this);
     }
 
     get isFirstTime() {
@@ -60,14 +61,11 @@ class PhotoMap {
     loadMap() {
         this.map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 0, lng: 0 },
-            zoom: 2
+            zoom: 3
         });
 
 
         this.map.addListener('zoom_changed', () => { photoMap.resetClusters(); })
-
-
-        this.geocoder = new google.maps.Geocoder()
 
         var script = document.createElement('script');
         script.onload = function () {
@@ -76,6 +74,8 @@ class PhotoMap {
         script.src = "dist/richmarker.js";
 
         document.head.appendChild(script);
+
+        this.geocoder.service = new google.maps.Geocoder();
     }
 
 
@@ -92,6 +92,20 @@ class PhotoMap {
         this.photos.length = 0
     }
 
+   
+
+    /**
+     * Search for a given query
+     * @param {String} q 
+     */
+    search(q) {
+        if (q == "")
+            q = undefined
+
+        this.query = q
+        this.ui.load()
+    }
+
     /**
      * 
      * @param {Photo} photo 
@@ -102,35 +116,6 @@ class PhotoMap {
         $("#content-loading").remove()
 
         if (photo.hasLocation()) {
-            if (this.SIDEBAR) {
-                var c = document.createElement('div')
-                c.className = "photo-list-item"
-                c.id = photo.id
-                c.innerHTML = `
-                <div class="photo-container">
-                    <img data-src="${photo.getSize({width: 440})}">
-                </div>
-                <div class="photo-meta-container">
-                    <div class="photo-meta-tags">
-                        <!--<span class="photo-meta-tag-type"><i class="fas fa-question-circle"></i> Still</span>
-                        <span class="photo-meta-tag-camera"><i class="fas fa-camera"></i> ${photo.camera}</span>
-                        <span class="photo-meta-tag-resolution"><i class="fas fa-image"></i> ${photo.width} x ${photo.height}</span>-->
-                    </div>
-                    <div class="photo-meta-location-container">
-                        <span class="fa-layers fa-fw">
-                            <i class="fas fa-location-arrow"></i> 
-                        </span> 
-                    
-                        <span class="photo-meta-location">${html.dots}</span>
-                    </div>
-                    
-                </div>
-            `
-                this.photo_list[0].appendChild(c);
-
-                //photo_list_item.append(...)
-            }
-
             this.photoToMap(photo)
 
             // Bind listener to marker
@@ -139,7 +124,8 @@ class PhotoMap {
                 new google.maps.event.trigger(marker, 'click');
             })
 
-            this.getLocation(photo)
+            if (this.GEOCODE_ALL && !this.address)
+                this.geocoder.getLocation(photo)
 
         } else {
             /*photo_list_item.find(".photo-meta-location-container").html(`<span class="fa-layers fa-fw">
@@ -157,11 +143,11 @@ class PhotoMap {
         let marker = new RichMarker({
             position: latLng,
             map: this.map,
-            content: `<div><img style="height: 64px; border-radius: 5%; border: 4px solid white;" src="${photo.getSize({width: 256})}"/></div>`,
+            content: `<div><img style="height: 64px; border-radius: 5%; border: 4px solid white;" src="${photo.getSize({ width: 256 })}"/></div>`,
             draggable: false,
             flat: true,
             anchor: RichMarkerPosition.TOP,
-            cover: photo.getSize({width: 256}),
+            cover: photo.getSize({ width: 256 }),
             id: photo.id
         })
 
@@ -174,7 +160,7 @@ class PhotoMap {
                 photoMap.infoWindow.close()
 
             photoMap.infoWindow = new google.maps.InfoWindow({
-                content: `<a href="https://drive.google.com/file/d/${photo.id}/view" target="_blank"><img src="${photo.getSize({aspect: true})}"></a>`
+                content: `<a href="https://drive.google.com/file/d/${photo.id}/view" target="_blank"><img src="${photo.getSize({ aspect: true })}"></a>`
             })
 
             photoMap.infoWindow.open(this.map, marker)
@@ -196,7 +182,7 @@ class PhotoMap {
     resetClusters() {
         if (this.clusterer)
             this.clusterer.clearMarkers()
-        
+
         this.clusterer = new MarkerClusterer(this.map, this.markers,
             {
                 maxZoom: 21,
@@ -204,73 +190,6 @@ class PhotoMap {
                 cssClass: this.clusterClass,
                 gridSize: 40
             });
-    }
-
-    /**
-     * Takes a photo and returns a string of the human readable
-     * location.
-     * @param {object} photo 
-     */
-    async getLocation(photo, isRetry = false) {
-        const RETRY_WAIT_MS = 1000
-
-        if (isRetry)
-            await sleep(RETRY_WAIT_MS)
-
-        //console.log(`Attempting to fetch location for ${photo.id}`)
-
-        if (this.GEOCODE)
-            this.executeGeocodeRequest(photo)
-    }
-
-    async executeGeocodeRequest(photo) {
-        const BUSY_WAIT_MS = 1000
-
-        while (this.geocodeCount >= MAX_GEOCODE_CONNECTIONS)
-            await sleep(BUSY_WAIT_MS)
-
-        this.geocodeCount++
-
-        let latlng = { lat: photo.latitude, lng: photo.longitude };
-
-        this.geocoder.geocode({ 'location': latlng }, function (results, status) {
-            if (status === 'OK') {
-                if (results[0]) {
-                    photoMap.processGeocode(results[0], photo)
-                } else {
-                    console.log('No results found');
-                }
-            } else if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
-                photoMap.getLocation(photo, true)
-                //console.log(`Retrying ${photo.id} in ${RETRY_WAIT_MS}ms due to query limit reached...`)
-            } else {
-                console.log('Geocoder failed due to: ' + status);
-            }
-
-            photoMap.geocodeCount--
-        });
-
-    }
-
-    processGeocode(result, photo) {
-        let formatted_address = result.formatted_address
-        let country, region
-
-        for (let c of result.address_components) {
-            if (c.types.includes("country"))
-                country = c.long_name
-            else if (c.types.includes("locality") || c.types.includes("administrative_area_level_1"))
-                region = c.long_name
-        }
-
-        if (country && region)
-            formatted_address = `${country}, ${region}`
-
-        console.log(`${photo.id} : ${formatted_address}`)
-
-        $(`#${photo.id} > div.photo-meta-container > div.photo-meta-location-container > span.photo-meta-location`).html(formatted_address)
-
-        photo.meta.location.address = formatted_address
     }
 
     async getPhotos(nextPageToken) {
@@ -316,7 +235,8 @@ class PhotoMap {
         this.resetClusters()
 
         // Update siderbar
-        //this.updateSidebarPlaces()
+        if (this.SIDEBAR)
+            this.updateSidebarPlaces()
 
         if (r.nextPageToken && this.RECURSE) {
             this.getPhotos(r.nextPageToken)
@@ -325,7 +245,10 @@ class PhotoMap {
             this.allPhotosLoaded = true
     }
 
-    
+
+    /**
+     * TODO make this check for exsiting elements in sidebar
+     */
     async updateSidebarPlaces() {
         let clusters = await this.getFixedSizeGrid(1);
         this.ui.emptyPlaces()
@@ -333,16 +256,16 @@ class PhotoMap {
             if (!cluster.clusterIcon_.url_)
                 continue
 
-            this.ui.addPlace({
-                lat: cluster.center_.lat(),
-                long: cluster.center_.lng(),
+            this.ui.addPhoto({
+                latitude: cluster.center_.lat(),
+                longitude: cluster.center_.lng(),
                 count: get(['clusterIcon_', 'sums_', 'text'], cluster),
                 cover: Photo.resize(cluster.clusterIcon_.url_, 512)
             })
         }
     }
 
-    async getFixedSizeGrid(size=1) {
+    async getFixedSizeGrid(size = 1) {
         let a = new MarkerClusterer(this.map, this.markers,
             {
                 maxZoom: 21,
@@ -353,8 +276,8 @@ class PhotoMap {
             })
 
         while (a.clusters_.length == 0)
-            await sleep(100)       
-        
+            await sleep(100)
+
         let d = [...a.clusters_]
 
         a.clearMarkers()
