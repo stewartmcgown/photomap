@@ -2019,7 +2019,7 @@ class UI {
     addPhoto(photo) {
         var c = document.createElement('div')
         c.className = "photo-list-item"
-        c.id = photo.id
+        c.id = photo.trim()
         c.innerHTML = `
                 <div class="photo-container">
                     <div class="photo-img" style="background-image:url('${photo.cover}')"></div>
