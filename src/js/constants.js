@@ -25,7 +25,7 @@ const get = (p, o, r = null) =>
 
 // Client ID and API key from the Developer Console
 const API_KEY = 'AIzaSyBLjH1zVUY5zh3NM65NqRVP3eQxZy6ifcA';
-const CLIENT_ID = '257316982603-nr1g6o1icrqoiaui4rrhu31865ph11r3.apps.googleusercontent.com';
+const PRODUCTION_HOSTNAME = "twistedcore.co.uk"
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
@@ -33,3 +33,10 @@ const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/r
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
 const SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.photos.readonly';
+
+let CLIENT_ID = () => {
+    if (window.location.hostname == PRODUCTION_HOSTNAME)
+        return "257316982603-0jmairn23vl079i1tt4tf0nk5kmkn32t.apps.googleusercontent.com"
+    else
+        return "257316982603-nr1g6o1icrqoiaui4rrhu31865ph11r3.apps.googleusercontent.com"
+}

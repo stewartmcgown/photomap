@@ -8,7 +8,7 @@ async function signInHandler(authenticated=false) {
     photoMap.ui.statusMessage = "Signing in..."
 
     gapi.auth2.authorize({
-        'client_id': CLIENT_ID,
+        'client_id': CLIENT_ID(),
         'immediate': false,
         'scope': SCOPES
     }, () => {
