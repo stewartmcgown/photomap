@@ -20,13 +20,6 @@ class Geocoder {
     }
 
     /**
-     * 
-     */
-    async load() {
-        
-    }
-
-    /**
      * Takes a photo and returns a string of the human readable
      * location.
      * @param {Photo} photo 
@@ -41,6 +34,11 @@ class Geocoder {
         this.executeGeocodeRequest(photo)
     }
 
+    /**
+     * Connects to the mapping API and sets a location for
+     * the given Photo.
+     * @param {Photo} photo 
+     */
     async executeGeocodeRequest(photo) {
         while(this.isBusy)
             await sleep(200)
@@ -73,23 +71,24 @@ class Geocoder {
             return false   
     }
 
+    /**
+     * Converts an API result into a formatted address.
+     * @param {Object}} result 
+     * @param {Photo} photo 
+     */
     processGeocode(result, photo) {
         let formatted_address = result.formatted_address
         let country, region
 
-        for (let c of result.address_components) {
-            if (c.types.includes("country"))
-                country = c.long_name
-            else if (c.types.includes("locality") || c.types.includes("administrative_area_level_1"))
-                region = c.long_name
+        for (let component of result.address_components) {
+            if (component.types.includes("country"))
+                country = component.long_name
+            else if (component.types.includes("locality") || component.types.includes("administrative_area_level_1"))
+                region = component.long_name
         }
 
         if (country && region)
             formatted_address = `${country}, ${region}`
-
-        //$(`#${photo.id} > div.photo-meta-container > div.photo-meta-location-container > span.photo-meta-location`).html(formatted_address)
-
-        console.log(formatted_address)
 
         // TODO: Push address name to photo on server
         //photo.address = formatted_address

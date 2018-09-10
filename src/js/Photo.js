@@ -13,8 +13,6 @@ class Photo {
         this.THUMB_LIFETIME = 9e5
     }
 
-
-
     get camera() {
         let make = get(['cameraMake'], this.meta)
         let model = get(['cameraModel'], this.meta)
@@ -56,9 +54,9 @@ class Photo {
     /**
      * Update the remote with a new location for this photo
      * 
-     * @param {Object.<location>} location // Contains a lat and long
+     * @param {Object.<Location>} location // Contains a lat and long
      */
-    setLocation(location) {
+    setRemoteLocation(location) {
 
     }
 
@@ -111,8 +109,14 @@ class Photo {
         
     }
 
+    /**
+     * 
+     * @param {*} url Thumbnail URL
+     * @param {*} width 
+     * @return {String} URL link to resized image
+     */
     static resize(url, width) {
-        let base = url.substr(0, url.length - 3)
+        let base = url.split("=")[0]
         return `${base}${width}`
     }
 

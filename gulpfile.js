@@ -1,4 +1,4 @@
-var gulp = require('gulp'), concat = require('gulp-concat'), sass = require('gulp-sass'), babel = require('gulp-babel');;
+var gulp = require('gulp'), concat = require('gulp-concat'), sass = require('gulp-sass'), babel = require('gulp-babel'), closureCompiler = require('gulp-closure-compiler');;
 
 gulp.task('default', function() {
   // place code for your default task here

@@ -10,8 +10,8 @@ class PhotoMap {
         this.markers = []
         this.infoWindows = []
 
-        this.PAGE_SIZE = 1000
-        this.MAX_PHOTOS = 10000
+        this.PAGE_SIZE = 100
+        this.MAX_PHOTOS = 100
         this.RECURSE = true
         this.GEOCODE = true
         this.GEOCODE_ALL = false
@@ -21,6 +21,9 @@ class PhotoMap {
         this.geocoder = new Geocoder(this);
     }
 
+    /**
+     * @return {boolean} is this the browser's first load
+     */
     get isFirstTime() {
         if (localStorage.getItem("isFirstTime") == "false")
             return false
@@ -58,6 +61,7 @@ class PhotoMap {
         return this.status.photos
     }
 
+
     loadMap() {
         this.map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 0, lng: 0 },
@@ -87,6 +91,9 @@ class PhotoMap {
         this.markers.length = 0;
     }
 
+    /**
+     * Removes all markers
+     */
     reset() {
         this.clearMap()
         this.photos.length = 0
@@ -135,6 +142,11 @@ class PhotoMap {
         }
     }
 
+    /**
+     * Adds a photo to the map
+     * 
+     * @param {Photo} photo 
+     */
     photoToMap(photo) {
         let latLng = new google.maps.LatLng(photo.latitude,
             photo.longitude);
@@ -192,6 +204,11 @@ class PhotoMap {
             });
     }
 
+    /**
+     * A recursive function to get all the photos from a user's 
+     * Google Drive.
+     * @param {String} nextPageToken 
+     */
     async getPhotos(nextPageToken) {
         const DEFAULT_Q = 'mimeType contains "image/" and trashed=false'
 
@@ -227,8 +244,12 @@ class PhotoMap {
 
     }
 
-    addListOfPhotos(r) {
-        for (let p of r.files)
+    /**
+     * Adds a list of photos to the map
+     * @param {Array.<Photo>} listOfPhotos 
+     */
+    addListOfPhotos(listOfPhotos) {
+        for (let p of listOfPhotos.files)
             this.processPhoto(new Photo(p))
 
         // Update cluster
@@ -238,10 +259,10 @@ class PhotoMap {
         if (this.SIDEBAR)
             this.updateSidebarPlaces()
 
-        if (r.nextPageToken && this.RECURSE) {
-            this.getPhotos(r.nextPageToken)
+        if (listOfPhotos.nextPageToken && this.RECURSE) {
+            this.getPhotos(listOfPhotos.nextPageToken)
             this.ui.statusMessage = `Fetched ${this.photos.length} photos...`
-        } else if (!r.nextPageToken)
+        } else if (!listOfPhotos.nextPageToken)
             this.allPhotosLoaded = true
     }
 
@@ -265,8 +286,12 @@ class PhotoMap {
         }
     }
 
+    /**
+     * 
+     * @param {Number} size A default size for the grid
+     */
     async getFixedSizeGrid(size = 1) {
-        let a = new MarkerClusterer(this.map, this.markers,
+        let clusterer = new MarkerClusterer(this.map, this.markers,
             {
                 maxZoom: 21,
                 minimumClusterSize: 2,
@@ -275,13 +300,13 @@ class PhotoMap {
                 gridSize: 1
             })
 
-        while (a.clusters_.length == 0)
+        while (clusterer.clusters_.length == 0)
             await sleep(100)
 
-        let d = [...a.clusters_]
+        let clusters = [...clusterer.clusters_]
 
-        a.clearMarkers()
+        clusterer.clearMarkers()
 
-        return d
+        return clusters
     }
 }

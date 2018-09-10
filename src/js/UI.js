@@ -1,3 +1,6 @@
+/**
+ * Manages the UI for the app
+ */
 class UI {
     constructor(map) {
         this.photoMap = map
@@ -38,6 +41,9 @@ class UI {
         this.updateLoading()
     }
 
+    /**
+     * Bind the icons to their actions
+     */
     bindings() {
         let that = this
         $(`${this.selectors.overlay} .close-icon`).on('click', function () {
@@ -73,8 +79,12 @@ class UI {
         };
     }
 
-    updateLoading(reset) {
-        if (reset)
+    /**
+     * 
+     * @param {boolean} isReset 
+     */
+    updateLoading(isReset) {
+        if (isReset)
             this.container.html("")
 
         if (!this.loading)
@@ -82,12 +92,17 @@ class UI {
         this.loading.show()
 
         $(this.selectors.status).html(this.loadingMessage_)
+
     }
 
     emptyPlaces() {
         this.photo_list.empty()
     }
 
+    /**
+     * Inserts a photo into the UI
+     * @param {Photo} photo 
+     */
     addPhoto(photo) {
         var c = document.createElement('div')
         c.className = "photo-list-item"
