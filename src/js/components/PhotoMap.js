@@ -99,7 +99,7 @@ class PhotoMap {
         this.photos.length = 0
     }
 
-   
+
 
     /**
      * Search for a given query
@@ -168,23 +168,47 @@ class PhotoMap {
 
         // Listen for click event
         marker.addListener('click', () => {
-            if (photoMap.infoWindow)
-                photoMap.infoWindow.close()
-
-            photoMap.infoWindow = new google.maps.InfoWindow({
-                content: `<a href="https://drive.google.com/file/d/${photo.id}/view" target="_blank"><img src="${photo.getSize({ aspect: true })}"></a>`
+            this.createSingularInfoWindow({
+                photos: [photo]
             })
-
-            photoMap.infoWindow.open(this.map, marker)
-
-            if (photoMap.map.zoom < 20)
-                photoMap.map.setZoom(21)
-            photoMap.map.panTo(marker.position)
         })
 
         // Add to app marker array
         this.markers.push(marker)
 
+    }
+
+    /**
+     * Manages the creation of an infowindow
+     * 
+     * @param {Object} options {
+     *  photos
+     * }
+     */
+    createSingularInfoWindow(options) {
+        let addPhoto = (id, cover) => {
+            return `<a href="https://drive.google.com/file/d/${id}/view" target="_blank"><img src="${cover}"></a>`
+        }
+
+        // Close any open window that is currently in the view
+        if (this.infoWindow)
+            this.infoWindow.close()
+
+        let content = "";
+        for (let photo of options.photos) {
+            content = content + addPhoto(photo.id, photo.getSize({aspect: true}))
+        }
+
+        this.infoWindow = new google.maps.InfoWindow({
+            content: content
+        })
+
+        this.infoWindow.open(this.map, marker)
+
+        if (this.map.zoom < 20)
+            this.map.setZoom(21)
+            
+        this.map.panTo(marker.position)
     }
 
     /**
@@ -197,7 +221,7 @@ class PhotoMap {
 
         this.clusterer = new MarkerClusterer(this.map, this.markers,
             {
-                maxZoom: 21,
+                maxZoom: 22,
                 minimumClusterSize: 2,
                 cssClass: this.clusterClass,
                 gridSize: 40
