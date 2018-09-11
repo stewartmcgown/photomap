@@ -7,12 +7,10 @@ Using the Drive API alone, all of a users Google Photos can be retrieved, with t
 
 ### Current Features
 - Shows photos on a map
+- Group photos into areas with a cover
+- Search for photos using object names
 
 ### Upcoming
-- Group photos into areas
-    - Set marker icon to be cover of 'area' like apple photos
-- Search for photos
-    - Perhaps using objects, faces etc. as Drive API should cover this.
 - Export as very high res map
 - Allow tagging of photos at locations
 - Add formatted location to image properties for easier retrieval.
